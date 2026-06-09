@@ -89,49 +89,83 @@
     <!-- DASHBOARD VIEW -->
     <div id="dashboard-view">
       <!-- STICKY FILTER BAR -->
-      <section class="sticky top-2 z-40 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 p-4 mb-6 shadow-md">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <!-- Dropdowns -->
-          <div class="flex flex-wrap items-center gap-3">
-            <div>
-              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Year</label>
-              <select id="filter-year" onchange="onFilterChange()" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500 min-w-[110px]"></select>
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quarter</label>
-              <select id="filter-quarter" onchange="onFilterChange()" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500 min-w-[100px]">
-                <option value="All">All Quarters</option>
-                <option value="Q1">Q1</option>
-                <option value="Q2">Q2</option>
-                <option value="Q3">Q3</option>
-                <option value="Q4">Q4</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Month</label>
-              <select id="filter-period" onchange="onFilterChange()" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500 min-w-[110px]"></select>
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Project Type</label>
-              <select id="filter-type" onchange="onFilterChange()" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500 min-w-[150px]"></select>
+      <section class="sticky top-2 z-40 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 p-5 mb-6 shadow-md transition-all duration-300">
+        <!-- Top bar: Mode Toggle & Right Controls -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Filter Mode:</span>
+            <div class="flex gap-0.5 bg-slate-100 p-1 rounded-xl">
+              <button type="button" id="btn-mode-range" onclick="setFilterMode('range')" class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer bg-[#2563eb] text-white shadow-xs">Range Mode</button>
+              <button type="button" id="btn-mode-single" onclick="setFilterMode('single')" class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-slate-500 hover:text-slate-800">Single Mode</button>
             </div>
           </div>
-          <!-- Right side controls: Toggle and Reset -->
-          <div class="flex items-center gap-4 flex-wrap">
+
+          <div class="flex items-center gap-3 flex-wrap w-full sm:w-auto justify-end">
             <div class="flex items-center gap-2 bg-rose-50 border border-rose-100 py-1.5 px-3 rounded-xl">
               <span class="text-xs font-bold text-rose-700">UAT Rescheduled Only</span>
               <div class="relative inline-block w-8 mr-1 align-middle select-none transition duration-200 ease-in">
-                <input type="checkbox" id="filter-reschedule-toggle" onchange="onFilterChange()" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-300 checked:border-rose-600 outline-none top-0 right-4 checked:right-0 transition-all duration-300"/>
-                <label for="filter-reschedule-toggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
+                <input type="checkbox" id="filter-reschedule-toggle" onchange="executeFilters()" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-300 checked:border-rose-600 outline-none top-0 right-4 checked:right-0 transition-all duration-300"/>
+                <label for="filter-reschedule-toggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-slate-200 cursor-pointer transition-colors duration-300"></label>
               </div>
             </div>
-            <button onclick="resetFilters()" class="text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 py-2 px-3.5 rounded-xl transition-all cursor-pointer">
+            <button onclick="resetFilters()" class="text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 py-2 px-4 rounded-xl transition-all cursor-pointer">
               Reset
             </button>
           </div>
         </div>
 
-        <!-- Filter info, Active chips, Unscheduled persistent badges -->
+        <!-- Dynamic Fields Row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <!-- RANGE MODE FIELDS -->
+          <div class="range-field col-span-1">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Start Year</label>
+            <select id="filter-start-year" onchange="executeFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"></select>
+          </div>
+          <div class="range-field col-span-1">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">End Year</label>
+            <select id="filter-end-year" onchange="executeFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"></select>
+          </div>
+          <div class="range-field col-span-1">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Start Month</label>
+            <select id="filter-start-month" onchange="executeFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"></select>
+          </div>
+          <div class="range-field col-span-1">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">End Month</label>
+            <select id="filter-end-month" onchange="executeFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"></select>
+          </div>
+
+          <!-- SINGLE MODE FIELDS (initially hidden) -->
+          <div class="single-field col-span-1 hidden">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Year</label>
+            <select id="filter-single-year" onchange="onSingleYearChange()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"></select>
+          </div>
+          <div class="single-field col-span-1 hidden">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Month</label>
+            <select id="filter-single-month" onchange="executeFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"></select>
+          </div>
+          <div class="single-field col-span-1 hidden">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quarter</label>
+            <select id="filter-single-quarter" onchange="executeFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500">
+              <option value="All">All Quarters</option>
+              <option value="Q1">Q1</option>
+              <option value="Q2">Q2</option>
+              <option value="Q3">Q3</option>
+              <option value="Q4">Q4</option>
+            </select>
+          </div>
+
+          <!-- SHARED FIELDS -->
+          <div class="col-span-1 border-l border-slate-100 pl-2">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Project Type</label>
+            <select id="filter-type" onchange="executeFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"></select>
+          </div>
+          <div class="col-span-1 md:col-span-1 lg:col-span-1">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Division</label>
+            <select id="filter-division" onchange="executeFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"></select>
+          </div>
+        </div>
+
+        <!-- Info row & active chips line -->
         <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-slate-500">
           <div class="flex flex-wrap items-center gap-3">
             <div class="flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full font-mono">
@@ -145,10 +179,25 @@
               <span class="flex items-center">⏳</span>
               <span id="pill-unscheduled-count">0 unscheduled (no timeline)</span>
             </div>
-            <div id="pill-reschedule-summary" class="hidden bg-rose-50 text-rose-700 border border-rose-100 px-3 py-1 rounded-full font-mono"></div>
           </div>
           <!-- Dynamic Chips List -->
           <div id="filter-chips" class="flex flex-wrap items-center gap-1.5 ml-auto"></div>
+        </div>
+      </section>
+
+      <!-- HERO BANNER "PROJECT ON QUEUE" -->
+      <section onclick="openDrillDown('Project On Queue', d => d['Last Status'] === 'On Queue', null, true)" 
+               class="mb-6 bg-[#fffbeb] border border-[#f59e0b] rounded-xl p-5 flex items-center justify-between cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-amber-100 text-amber-700 rounded-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#b45309]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 class="font-sans font-bold text-[22px] text-[#b45309]">Project On Queue</h2>
+        </div>
+        <div class="font-sans font-extrabold text-[48px] text-[#d97706] leading-none" id="hero-queue-counter">
+          0
         </div>
       </section>
 
@@ -198,6 +247,12 @@
             <p id="kpi-feedback-desc" class="text-[10px] text-slate-400 font-semibold mt-1">Based on 0 evaluations</p>
           </div>
         </div>
+      </section>
+
+      <!-- SECTION 1B — ON QUEUE STATUS CARDS -->
+      <section id="section-1b-container" class="mb-6 hidden">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">Projects Currently On Queue</h3>
+        <div id="section-1b-scroll" class="flex flex-row gap-4 overflow-x-auto pb-2 no-scrollbar"></div>
       </section>
 
       <!-- SECTION 2 — PIPELINE & ON QUEUE -->
@@ -426,6 +481,7 @@
     let baseProjects = [];
     let filteredProjects = [];
     let currentSlaTab = "uat-reschedule";
+    let filterMode = "range"; // "range" or "single"
     let visibleStatusGroups = {
       queue: true,
       inProgress: true,
@@ -447,10 +503,15 @@
       return data.map(d => {
         const yrRaw = d["Year"];
         const pRaw = d["Period"];
+        let parsedPeriod = "Unscheduled";
+        if (pRaw != null && String(pRaw).trim() !== "" && String(pRaw).trim() !== "Unscheduled") {
+          const trimmed = String(pRaw).trim();
+          parsedPeriod = trimmed.split("-")[0]; // E.g., extracts "Jan" from "Jan-21"
+        }
         return {
           ...d,
           _year: (yrRaw != null && String(yrRaw).trim() !== "") ? String(yrRaw).replace(".0","") : "Unscheduled",
-          _period: (pRaw != null && String(pRaw).trim() !== "") ? String(pRaw).trim() : "Unscheduled",
+          _period: parsedPeriod,
           _typeGroup: (function(t) {
             if (!t) return "Other";
             if (["Enhance Kecil","Hold Enhance Kecil","Antrian Enhance Kecil"].includes(t)) return "Enhance Kecil";
@@ -471,12 +532,11 @@
       d["Type Project"] !== "Internal IT" &&
       d["Owner Div"] !== "INFORMATION TECHNOLOGY";
 
-    // Period sorting chronological month-year
+    // Period sorting by base month sequence (Jan to Dec)
     function sortPeriods(periods) {
       const monthIdx = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
       return periods.filter(p => p !== "Unscheduled").sort((a,b) => {
-        const [am,ay] = a.split("-"); const [bm,by] = b.split("-");
-        return (parseInt(ay)-parseInt(by)) || (monthIdx[am]-monthIdx[bm]);
+        return (monthIdx[a] || 0) - (monthIdx[b] || 0);
       }).concat(periods.includes("Unscheduled") ? ["Unscheduled"] : []);
     }
 
@@ -511,112 +571,208 @@
       populateFilterOptions();
       
       // Select All default and reset options
-      document.getElementById("filter-year").value = "All";
-      document.getElementById("filter-period").value = "All";
-      document.getElementById("filter-quarter").value = "All";
-      document.getElementById("filter-type").value = "All";
-      document.getElementById("filter-reschedule-toggle").checked = false;
+      resetFilters();
 
       document.getElementById("upload-screen").classList.add("hidden");
       document.getElementById("dashboard-view").classList.remove("hidden");
+    }
 
+    const BASE_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    function populateFilterOptions() {
+      // 1. Populate Range mode dropdowns
+      const startYearSelect = document.getElementById("filter-start-year");
+      const endYearSelect = document.getElementById("filter-end-year");
+      const startMonthSelect = document.getElementById("filter-start-month");
+      const endMonthSelect = document.getElementById("filter-end-month");
+
+      startYearSelect.innerHTML = YEAR_ORDER.map(y => `<option value="${y}">${y}</option>`).join("");
+      endYearSelect.innerHTML = YEAR_ORDER.map(y => `<option value="${y}">${y}</option>`).join("");
+
+      const monthOptionsHtml = `<option value="All">All Months</option>` + BASE_MONTHS.map(m => `<option value="${m}">${m}</option>`).join("");
+      startMonthSelect.innerHTML = monthOptionsHtml;
+      endMonthSelect.innerHTML = monthOptionsHtml;
+
+      // 2. Populate Single mode dropdowns
+      const singleYearSelect = document.getElementById("filter-single-year");
+      singleYearSelect.innerHTML = `<option value="All">All Years</option>` + YEAR_ORDER.map(y => `<option value="${y}">${y}</option>`).join("");
+
+      // Cascade single months with single year
+      updateSingleMonthsList();
+
+      // 3. Populate Shared filters
+      const typeSelect = document.getElementById("filter-type");
+      const divSelect = document.getElementById("filter-division");
+
+      const typesList = ["Enhance Kecil", "Project Utama", "Approval Digital"];
+      typeSelect.innerHTML = `<option value="All">All Project Types</option>` + typesList.map(t => `<option value="${t}">${t}</option>`).join("");
+
+      const divSet = new Set(baseProjects.map(p => p["Owner Div"]).filter(d => d != null && d !== ""));
+      const divSorted = Array.from(divSet).sort();
+      divSelect.innerHTML = `<option value="All">All Divisions</option>` + divSorted.map(d => `<option value="${d}">${d}</option>`).join("");
+    }
+
+    function periodToVal(pStr) {
+      if (!pStr || pStr === "Unscheduled") return 0;
+      const monthIdx = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+      return monthIdx[pStr.split("-")[0]] || 0;
+    }
+
+    function updateSingleMonthsList() {
+      const singleMonthSelect = document.getElementById("filter-single-month");
+      if (!singleMonthSelect) return;
+      const currentMonthVal = singleMonthSelect.value || "All";
+      
+      singleMonthSelect.innerHTML = `<option value="All">All Months</option>` + BASE_MONTHS.map(m => `<option value="${m}">${m}</option>`).join("");
+      
+      if (BASE_MONTHS.includes(currentMonthVal)) {
+        singleMonthSelect.value = currentMonthVal;
+      } else {
+        singleMonthSelect.value = "All";
+      }
+    }
+
+    function onSingleYearChange() {
+      updateSingleMonthsList();
       executeFilters();
     }
 
-    function populateFilterOptions() {
-      const yearSelect = document.getElementById("filter-year");
-      const periodSelect = document.getElementById("filter-period");
-      const typeSelect = document.getElementById("filter-type");
-
-      // Extract unique values
-      const yearsSet = new Set(baseProjects.map(p => p._year));
-      // order years
-      const yearsSorted = YEAR_ORDER.filter(y => yearsSet.has(y));
+    function setFilterMode(mode) {
+      filterMode = mode;
+      const btnRange = document.getElementById("btn-mode-range");
+      const btnSingle = document.getElementById("btn-mode-single");
       
-      yearSelect.innerHTML = `<option value="All">All Years</option>` + 
-        yearsSorted.map(y => `<option value="${y}">${y === 'Unscheduled' ? 'Unscheduled' : 'Year ' + y}</option>`).join("");
-
-      const typesSet = new Set(baseProjects.map(p => p._typeGroup));
-      typeSelect.innerHTML = `<option value="All">All Project Types</option>` + 
-        Array.from(typesSet).sort().map(t => `<option value="${t}">${t}</option>`).join("");
-
-      // Periods dynamic populate
-      updatePeriodSelectOptions();
-    }
-
-    function updatePeriodSelectOptions() {
-      const yearSelect = document.getElementById("filter-year").value;
-      const periodSelect = document.getElementById("filter-period");
-
-      let sourceProjects = baseProjects;
-      if (yearSelect !== "All") {
-        sourceProjects = baseProjects.filter(p => p._year === yearSelect);
+      if (mode === "range") {
+        btnRange.className = "px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer bg-[#2563eb] text-white shadow-xs";
+        btnSingle.className = "px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-slate-500 hover:text-slate-800";
+        document.querySelectorAll(".range-field").forEach(el => el.classList.remove("hidden"));
+        document.querySelectorAll(".single-field").forEach(el => el.classList.add("hidden"));
+      } else {
+        btnRange.className = "px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-slate-500 hover:text-slate-800";
+        btnSingle.className = "px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer bg-[#2563eb] text-white shadow-xs";
+        document.querySelectorAll(".range-field").forEach(el => el.classList.add("hidden"));
+        document.querySelectorAll(".single-field").forEach(el => el.classList.remove("hidden"));
       }
-
-      const pSet = new Set(sourceProjects.map(p => p._period).filter(p => p !== "Unscheduled"));
-      const pSorted = sortPeriods(Array.from(pSet));
-
-      const currentVal = periodSelect ? periodSelect.value : "All";
-      
-      let html = `<option value="All">All Months</option>`;
-      html += pSorted.map(p => `<option value="${p}">${p}</option>`).join("");
-      
-      periodSelect.innerHTML = html;
-      periodSelect.value = pSorted.includes(currentVal) ? currentVal : "All";
-    }
-
-    // TRIGGER FILTER PIPELINE ON OPTION CHANCES
-    function onFilterChange() {
-      updatePeriodSelectOptions();
       executeFilters();
     }
 
     function resetFilters() {
-      document.getElementById("filter-year").value = "All";
-      updatePeriodSelectOptions();
-      document.getElementById("filter-period").value = "All";
-      document.getElementById("filter-quarter").value = "All";
-      document.getElementById("filter-type").value = "All";
-      document.getElementById("filter-reschedule-toggle").checked = false;
-      executeFilters();
+      // 1. Reset Range fields
+      const sy = document.getElementById("filter-start-year");
+      const ey = document.getElementById("filter-end-year");
+      const sm = document.getElementById("filter-start-month");
+      const em = document.getElementById("filter-end-month");
+      
+      if (sy) sy.value = "2021";
+      if (ey) ey.value = "2026";
+      if (sm) sm.value = "All";
+      if (em) em.value = "All";
+
+      // 2. Reset Single fields
+      const sY = document.getElementById("filter-single-year");
+      if (sY) sY.value = "All";
+      updateSingleMonthsList();
+      const sM = document.getElementById("filter-single-month");
+      const sQ = document.getElementById("filter-single-quarter");
+      if (sM) sM.value = "All";
+      if (sQ) sQ.value = "All";
+
+      // 3. Reset Shared fields & Toggles
+      const typeSel = document.getElementById("filter-type");
+      const divSel = document.getElementById("filter-division");
+      const reschedTg = document.getElementById("filter-reschedule-toggle");
+
+      if (typeSel) typeSel.value = "All";
+      if (divSel) divSel.value = "All";
+      if (reschedTg) reschedTg.checked = false;
+
+      // 4. Default mode is 'range'
+      setFilterMode('range');
     }
 
     function executeFilters() {
-      const yearVal = document.getElementById("filter-year").value;
-      const quarterVal = document.getElementById("filter-quarter").value;
-      const periodVal = document.getElementById("filter-period").value;
+      // Shared Filter Selectors
       const typeVal = document.getElementById("filter-type").value;
+      const divVal = document.getElementById("filter-division").value;
       const reschedVal = document.getElementById("filter-reschedule-toggle").checked;
 
+      // Range Selector Values
+      const rangeStartY = document.getElementById("filter-start-year").value;
+      const rangeEndY = document.getElementById("filter-end-year").value;
+      const rangeStartM = document.getElementById("filter-start-month").value;
+      const rangeEndM = document.getElementById("filter-end-month").value;
+
+      // Single Selector Values
+      const singleY = document.getElementById("filter-single-year").value;
+      const singleM = document.getElementById("filter-single-month").value;
+      const singleQ = document.getElementById("filter-single-quarter").value;
+
       filteredProjects = baseProjects.filter(p => {
-        if (yearVal !== "All" && p._year !== yearVal) return false;
-        if (quarterVal !== "All" && p["Kuartal"] !== quarterVal) return false;
-        if (periodVal !== "All" && p._period !== periodVal) return false;
+        // Shared Exclusions
         if (typeVal !== "All" && p._typeGroup !== typeVal) return false;
+        if (divVal !== "All" && p["Owner Div"] !== divVal) return false;
         if (reschedVal && !(p["Reschedule UAT"] != null && p["Reschedule UAT"] > 0)) return false;
+
+        if (filterMode === "range") {
+          const isFullRange = (rangeStartY === "2021" && rangeEndY === "2026" && rangeStartM === "All" && rangeEndM === "All");
+
+          // Handle Unscheduled (or missing year/period) separately
+          if (p._year === "Unscheduled" || p._period === "Unscheduled" || p._period == null) {
+            return isFullRange;
+          }
+
+          // Real Scheduled Projects
+          const monthIdxMap = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+          
+          const pYear = parseInt(p._year);
+          const pMonthIdx = monthIdxMap[p._period];
+          if (isNaN(pYear) || pMonthIdx === undefined) {
+            return false;
+          }
+
+          const projectValue = (pYear * 12) + pMonthIdx;
+
+          // Start Filter Value
+          const startYear = parseInt(rangeStartY);
+          const startMonthIdx = rangeStartM === "All" ? 0 : monthIdxMap[rangeStartM];
+          const startFilterValue = (isNaN(startYear) ? 0 : startYear * 12) + startMonthIdx;
+
+          // End Filter Value
+          const endYear = parseInt(rangeEndY);
+          const endMonthIdx = rangeEndM === "All" ? 11 : monthIdxMap[rangeEndM];
+          const endFilterValue = (isNaN(endYear) ? 999999 : endYear * 12) + endMonthIdx;
+
+          if (projectValue < startFilterValue || projectValue > endFilterValue) {
+            return false;
+          }
+        } else {
+          // Single filter mode
+          if (singleY !== "All" && p._year !== singleY) return false;
+          if (singleM !== "All" && p._period !== singleM) return false;
+          if (singleQ !== "All" && p["Kuartal"] !== singleQ) return false;
+        }
+
         return true;
       });
 
-      // Update summary count pills
+      // Update counters
       document.getElementById("pill-project-count").textContent = `${filteredProjects.length} Projects`;
-      
-      const unscheduledTotal = baseProjects.filter(p => p._year === "Unscheduled").length;
-      document.getElementById("pill-unscheduled-count").textContent = `${unscheduledTotal} projects unscheduled (no timeline)`;
+      const unscheduledTotal = filteredProjects.filter(p => p._year === "Unscheduled").length;
+      document.getElementById("pill-unscheduled-count").textContent = `${unscheduledTotal} unscheduled (no timeline)`;
 
-      // UAT Reschedule rose pill
-      const reschedPill = document.getElementById("pill-reschedule-summary");
-      if (reschedVal) {
-        const countReschedAll = filteredProjects.length;
-        const sumVal = filteredProjects.reduce((sum, p) => sum + (p["Reschedule UAT"] || 0), 0);
-        const avgVal = countReschedAll > 0 ? (sumVal / countReschedAll).toFixed(1) : "0.0";
-        reschedPill.textContent = `● ${countReschedAll} projects rescheduled · Avg ${avgVal} reschedules`;
-        reschedPill.classList.remove("hidden");
-      } else {
-        reschedPill.classList.add("hidden");
+      // Project On Queue Hero Banner Counter
+      const onQueueTotal = baseProjects.filter(p => p["Last Status"] === "On Queue").length;
+      const heroQueueCounterEl = document.getElementById("hero-queue-counter");
+      if (heroQueueCounterEl) {
+        heroQueueCounterEl.textContent = onQueueTotal;
       }
 
-      // Render active chips list
-      renderActiveChips({ year: yearVal, quarter: quarterVal, period: periodVal, type: typeVal, reschedule: reschedVal });
+      // Active chips rendering
+      renderActiveChips({
+        startY: rangeStartY, endY: rangeEndY, startM: rangeStartM, endM: rangeEndM,
+        singleY, singleM, singleQ,
+        type: typeVal, division: divVal, reschedule: reschedVal
+      });
 
       if (filteredProjects.length === 0) {
         document.getElementById("empty-state").classList.remove("hidden");
@@ -627,6 +783,7 @@
 
         // RENDER EVERY CARD AND CHART
         renderKPIs();
+        renderSection1BQueueCards();
         renderChart2A();
         renderChart2B();
         renderTable2C();
@@ -641,24 +798,52 @@
       const container = document.getElementById("filter-chips");
       container.innerHTML = "";
 
-      const keysMap = [
-        { key: "year", label: "Year", value: filters.year, reset: () => { document.getElementById("filter-year").value = "All"; onFilterChange(); } },
-        { key: "quarter", label: "Quarter", value: filters.quarter, reset: () => { document.getElementById("filter-quarter").value = "All"; executeFilters(); } },
-        { key: "period", label: "Month", value: filters.period, reset: () => { document.getElementById("filter-period").value = "All"; executeFilters(); } },
-        { key: "type", label: "Type", value: filters.type, reset: () => { document.getElementById("filter-type").value = "All"; executeFilters(); } },
-        { key: "reschedule", label: "Rescheduled", value: filters.reschedule ? "Rescheduled Only" : "All", isBool: true, reset: () => { document.getElementById("filter-reschedule-toggle").checked = false; executeFilters(); } }
-      ];
+      const chips = [];
 
-      keysMap.forEach(item => {
-        if ((!item.isBool && item.value !== "All") || (item.isBool && filters.reschedule)) {
-          const chip = document.createElement("div");
-          chip.className = "flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 py-1 px-2.5 rounded-full text-xs font-bold transition-all";
-          chip.innerHTML = `
-            <span>${item.label}: ${item.value}</span>
-            <button class="hover:text-rose-600 font-extrabold ml-1 cursor-pointer" onclick="(${item.reset.toString()})()">&times;</button>
-          `;
-          container.appendChild(chip);
+      if (filterMode === "range") {
+        if (filters.startY !== "2021") {
+          chips.push({ label: `Start Year: ${filters.startY}`, reset: () => { document.getElementById("filter-start-year").value = "2021"; executeFilters(); } });
         }
+        if (filters.endY !== "2026") {
+          chips.push({ label: `End Year: ${filters.endY}`, reset: () => { document.getElementById("filter-end-year").value = "2026"; executeFilters(); } });
+        }
+        if (filters.startM !== "All") {
+          chips.push({ label: `From Month: ${filters.startM}`, reset: () => { document.getElementById("filter-start-month").value = "All"; executeFilters(); } });
+        }
+        if (filters.endM !== "All") {
+          chips.push({ label: `To Month: ${filters.endM}`, reset: () => { document.getElementById("filter-end-month").value = "All"; executeFilters(); } });
+        }
+      } else {
+        if (filters.singleY !== "All") {
+          chips.push({ label: `Year: ${filters.singleY}`, reset: () => { document.getElementById("filter-single-year").value = "All"; updateSingleMonthsList(); executeFilters(); } });
+        }
+        if (filters.singleM !== "All") {
+          chips.push({ label: `Month: ${filters.singleM}`, reset: () => { document.getElementById("filter-single-month").value = "All"; executeFilters(); } });
+        }
+        if (filters.singleQ !== "All") {
+          chips.push({ label: `Quarter: ${filters.singleQ}`, reset: () => { document.getElementById("filter-single-quarter").value = "All"; executeFilters(); } });
+        }
+      }
+
+      // Shared
+      if (filters.type !== "All") {
+        chips.push({ label: `Type: ${filters.type}`, reset: () => { document.getElementById("filter-type").value = "All"; executeFilters(); } });
+      }
+      if (filters.division !== "All") {
+        chips.push({ label: `Div: ${filters.division}`, reset: () => { document.getElementById("filter-division").value = "All"; executeFilters(); } });
+      }
+      if (filters.reschedule) {
+        chips.push({ label: "Rescheduled Only", reset: () => { document.getElementById("filter-reschedule-toggle").checked = false; executeFilters(); } });
+      }
+
+      chips.forEach(item => {
+        const chip = document.createElement("div");
+        chip.className = "flex items-center gap-1.5 bg-slate-100 border border-slate-200 shadow-xs hover:bg-slate-200 text-slate-700 py-1 px-2.5 rounded-full text-xs font-bold transition-all";
+        chip.innerHTML = `
+          <span>${item.label}</span>
+          <button class="hover:text-rose-600 font-extrabold ml-1 cursor-pointer" onclick="(${item.reset.toString()})()">&times;</button>
+        `;
+        container.appendChild(chip);
       });
     }
 
@@ -688,6 +873,40 @@
       document.getElementById("kpi-feedback-desc").textContent = `Based on ${scores.length} reviews`;
     }
 
+    function renderSection1BQueueCards() {
+      const container = document.getElementById("section-1b-container");
+      const scrollRow = document.getElementById("section-1b-scroll");
+      if (!container || !scrollRow) return;
+
+      const queueStatuses = ["On Queue", "Dev On Queue", "UAT On Queue", "Live On Queue", "FPS"];
+      container.classList.remove("hidden");
+      scrollRow.innerHTML = "";
+
+      queueStatuses.forEach(status => {
+        const count = filteredProjects.filter(p => p["Last Status"] === status).length;
+        
+        let desc = "Awaiting initiation";
+        if (status === "Dev On Queue") desc = "Ready for development";
+        if (status === "UAT On Queue") desc = "Ready for user acceptance";
+        if (status === "Live On Queue") desc = "Awaiting production release";
+        if (status === "FPS") desc = "Fast-path scheduling backlog";
+
+        const card = document.createElement("div");
+        card.className = "bg-white min-w-[210px] flex-grow flex-shrink-0 md:flex-1 rounded-2xl border border-slate-200 border-l-[6px] border-l-amber-500 p-4 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all flex flex-col justify-between card-shadow";
+        card.setAttribute("onclick", `openDrillDown('Status: ${status}', d => d['Last Status'] === '${status}')`);
+        card.innerHTML = `
+          <div class="flex justify-between items-start gap-2">
+            <span class="text-xs font-bold text-slate-700">${status}</span>
+            <span class="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-extrabold rounded-full">${count}</span>
+          </div>
+          <div class="mt-3">
+            <p class="text-[10px] text-slate-400 font-semibold leading-relaxed">${desc}</p>
+          </div>
+        `;
+        scrollRow.appendChild(card);
+      });
+    }
+
     // CHART 2A — Stacked Bar
     function renderChart2A() {
       const traceNames = STATUS_LIST;
@@ -706,7 +925,7 @@
         const hoverText = YEAR_ORDER.map((yr, idx) => {
           const totalY = filteredProjects.filter(p => p._year === yr).length;
           const share = totalY > 0 ? ((yValues[idx] / totalY) * 100).toFixed(0) : "0";
-          return `<b>${yr === "Unscheduled" ? "Unscheduled" : "Year " + yr}</b><br>Status: ${status}<br>Count: ${yValues[idx]} (${share}%)<extra></extra>`;
+          return `<b>${yr === "Unscheduled" ? "Unscheduled" : "Year " + yr}</b><br>Status: ${status}<br>Count: ${yValues[idx]} (${share}%)`;
         });
 
         return {
@@ -719,7 +938,7 @@
             line: { color: borderColors, width: borderWidths }
           },
           text: hoverText,
-          hovertemplate: "%{text}"
+          hovertemplate: "%{text}<extra></extra>"
         };
       });
 
@@ -842,8 +1061,8 @@
             dash: totalPoints < 3 ? 'dash' : 'solid'
           },
           marker: { size: 6, color: baseColor },
-          text: periodsSorted.map((p, idx) => `<b>Month ${p}</b><br>Status: ${status}<br>Count: ${yValues[idx]}<extra></extra>`),
-          hovertemplate: "%{text}"
+          text: periodsSorted.map((p, idx) => `<b>Month ${p}</b><br>Status: ${status}<br>Count: ${yValues[idx]}`),
+          hovertemplate: "%{text}<extra></extra>"
         };
       });
 
@@ -984,9 +1203,9 @@
       tbody.appendChild(trTotal);
     }
 
-    // CHART 2D — Pipeline depth area chart
+    // CHART 2D — Pipeline depth grouped bar chart
     function renderChart2D() {
-      const periodsSet = new Set(filteredProjects.map(p => p._period).filter(p => p !== "Unscheduled"));
+      const periodsSet = new Set(filteredProjects.map(p => p._period).filter(p => p !== "Unscheduled" && p != null));
       const periodsSorted = sortPeriods(Array.from(periodsSet));
 
       const activeCounts = periodsSorted.map(p => {
@@ -1001,27 +1220,26 @@
         x: periodsSorted,
         y: activeCounts,
         name: 'In-Flight Projects (Active Pipeline)',
-        fill: 'tozeroy',
-        type: 'scatter',
-        mode: 'lines+markers',
-        fillcolor: 'rgba(37, 99, 235, 0.15)',
-        line: { color: '#2563eb', width: 2.5 }
+        type: 'bar',
+        marker: { color: '#2563eb', line: { color: '#1d4ed8', width: 0.8 } },
+        hovertemplate: '<b>In-Flight (%{x})</b><br>%{y} Projects<extra></extra>'
       };
 
       const traceCompleted = {
         x: periodsSorted,
         y: completedCounts,
         name: 'Completed (Completed / Monitoring)',
-        type: 'scatter',
-        mode: 'lines+markers',
-        line: { color: '#059669', width: 2.2 }
+        type: 'bar',
+        marker: { color: '#059669', line: { color: '#047857', width: 0.8 } },
+        hovertemplate: '<b>Completed (%{x})</b><br>%{y} Projects<extra></extra>'
       };
 
       const layout = {
+        barmode: 'group',
         showlegend: true,
-        legend: { orientation: 'h', y: -0.15 },
-        xaxis: { gridcolor: '#e2e8f0', type: 'category' },
-        yaxis: { title: 'Project Counts', gridcolor: '#e2e8f0' },
+        legend: { orientation: 'h', y: -0.15, x: 0.5, xanchor: 'center' },
+        xaxis: { gridcolor: '#f1f5f9', type: 'category' },
+        yaxis: { title: 'Project Counts', gridcolor: '#f1f5f9' },
         margin: { t: 20, r: 15, b: 60, l: 45 },
         height: 250,
         paper_bgcolor: "rgba(0,0,0,0)",
@@ -1098,8 +1316,8 @@
           name: cat,
           type: 'bar',
           marker: { color: catColors[cat] },
-          text: YEAR_ORDER.map((yr, idx) => `<b>Year ${yr}</b><br>Category: ${cat}<br>Count: ${yValues[idx]}<extra></extra>`),
-          hovertemplate: "%{text}"
+          text: YEAR_ORDER.map((yr, idx) => `<b>Year ${yr}</b><br>Category: ${cat}<br>Count: ${yValues[idx]}`),
+          hovertemplate: "%{text}<extra></extra>"
         };
       });
 
@@ -1255,11 +1473,103 @@
       const accordion = document.createElement("tr");
       accordion.className = "accordion-row bg-slate-50/80 border-b border-slate-200";
       
-      const colCount = currentSlaTab === "uat-reschedule" ? 7 : 8;
+      const colCount = rowElement.cells.length;
+
+      // Extract details for 5 phases: FSD, DEV, SIT, UAT, and LIVE
+      const phasesConfig = [
+        {
+          name: "FSD Phase",
+          status: project["(FSD) Status"],
+          plan: project["(FSD) Plan in Week"],
+          progress: project["(FSD) Progress Updated"],
+          late: project["(FSD) Late Days"]
+        },
+        {
+          name: "DEV Phase",
+          status: project["(Dev) Status"],
+          plan: project["(Dev) Plan in Week"],
+          progress: project["(Dev) Progress Updated"],
+          late: project["(Dev) Late Days"]
+        },
+        {
+          name: "SIT Phase",
+          status: project["(SIT) Status"],
+          plan: project["(SIT) Plan in Week"],
+          progress: project["(SIT) Progress Updated"],
+          late: project["(SIT) Late Days"]
+        },
+        {
+          name: "UAT Phase",
+          status: project["(UAT) Status"],
+          plan: project["(UAT) Plan in Week"],
+          progress: project["(UAT) Progress Updated"],
+          late: project["(UAT) Late Days"]
+        },
+        {
+          name: "LIVE Phase",
+          status: project["(Live) Status"] || project["Live (Status)"] || project["Live Status"],
+          plan: project["(Live) Plan in Week"] || project["Live (Plan in Week)"] || project["Live Plan in Week"],
+          progress: project["(Live) Progress Updated"] || project["Live (Progress Updated)"] || project["Live Progress Updated"],
+          late: project["Live (Late Days)"] || project["(Live) Late Days"]
+        }
+      ];
+
+      const getVal = (val) => {
+        if (val == null || String(val).trim() === "" || val === "null" || val === "N/A") {
+          return `<span class="text-slate-400 font-mono">—</span>`;
+        }
+        return val;
+      };
+
+      const formatLateNote = (note) => {
+        if (note == null || String(note).trim() === "" || note === "null") {
+          return `<span class="text-slate-400 font-mono">—</span>`;
+        }
+        if (String(note).includes("Telat")) {
+          return `<span class="text-[#e11d48] font-bold">${note}</span>`;
+        }
+        return note;
+      };
+
+      let phasesHtml = "";
+      phasesConfig.forEach(phase => {
+        const isDone = String(phase.status || "").trim() === "Done";
+        const borderStyle = isDone ? "border-top: 4px solid #059669" : "border-top: 4px solid #94a3b8";
+        const checkmark = isDone ? `<span class="text-[#059669] font-bold text-xs">✓ Done</span>` : ``;
+
+        phasesHtml += `
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col justify-between" style="${borderStyle}">
+            <div>
+              <div class="flex items-center justify-between mb-2 pb-1 border-b border-slate-100">
+                <span class="font-extrabold text-[10px] text-slate-500 uppercase tracking-widest">${phase.name}</span>
+                ${checkmark}
+              </div>
+              <div class="space-y-1.5 text-[11px] text-slate-600">
+                <div>
+                  <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block">Status</span>
+                  <span class="font-bold text-slate-800 text-xs">${getVal(phase.status)}</span>
+                </div>
+                <div>
+                  <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block">Plan</span>
+                  <span class="font-medium text-slate-700">${getVal(phase.plan)}</span>
+                </div>
+                <div>
+                  <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block">Progress/Realized</span>
+                  <span class="font-medium text-slate-700">${getVal(phase.progress)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-slate-100 text-[10px]">
+              <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block mb-0.5">Late Note</span>
+              <span class="font-semibold text-slate-700">${formatLateNote(phase.late)}</span>
+            </div>
+          </div>
+        `;
+      });
 
       accordion.innerHTML = `
         <td colspan="${colCount}" class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-xs">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-xs mb-6">
             <div>
               <p class="font-bold text-slate-400 uppercase tracking-wider mb-1">Project Personnel</p>
               <p class="mb-1 text-slate-800 font-semibold"><b>PIC:</b> ${project["PIC Name"] || 'N/A'}</p>
@@ -1291,6 +1601,15 @@
               <p class="mt-2 text-[#d97706] font-bold">Feedback Score: ${project["Rata-rata Nilai Feedback User : "] != null ? project["Rata-rata Nilai Feedback User : "].toFixed(1) + '/5' : 'No Feedback'}</p>
             </div>
           </div>
+
+          <!-- PROJECT TIMELINE TRACKER UI -->
+          <div class="pt-5 border-t border-slate-200">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">Project Timeline Tracker</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              ${phasesHtml}
+            </div>
+          </div>
+
           <div class="mt-4 flex justify-end">
             <button onclick="openDrillDown('Single Project View — ${project['Project Name'].replace(/'/g, "\\'")}', d => d['Project Name'] === '${project['Project Name'].replace(/'/g, "\\'")}')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 font-bold text-white text-xs rounded-lg shadow-sm">Inspect Complete Details</button>
           </div>
@@ -1536,9 +1855,10 @@
     }
 
     // GLOBAL DRILL DOWN TRIGGER MODAL SYSTEM
-    function openDrillDown(title, filterFunction, optionalSort = null) {
+    function openDrillDown(title, filterFunction, optionalSort = null, useBaseProjects = false) {
       drillDownFilterFn = filterFunction;
-      drillDownModalData = filteredProjects.filter(filterFunction);
+      const targetSource = useBaseProjects ? baseProjects : filteredProjects;
+      drillDownModalData = targetSource.filter(filterFunction);
 
       if (optionalSort === "score-asc") {
         drillDownModalData.sort((a,b) => {
@@ -1549,7 +1869,7 @@
       }
 
       document.getElementById("modal-title").innerHTML = title;
-      document.getElementById("modal-count").textContent = `Showing ${drillDownModalData.length} of ${filteredProjects.length} evaluated projects`;
+      document.getElementById("modal-count").textContent = `Showing ${drillDownModalData.length} of ${targetSource.length} evaluated projects`;
 
       // Fill modal tbody
       const tbody = document.getElementById("modal-tbody");
