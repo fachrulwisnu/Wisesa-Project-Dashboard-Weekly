@@ -1,0 +1,6 @@
+{
+  "name": "Wisesa Project Management Dashboard",
+  "description": "Interactive project management dashboard with SLA compliance tracking, UAT reschedule analysis, and division level analytics using Plotly.js",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
