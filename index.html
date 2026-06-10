@@ -42,6 +42,25 @@
     /* Toggle switch CSS */
     .toggle-checkbox:checked + .toggle-label { background-color: #e11d48; }
     .toggle-checkbox:checked + .toggle-label .toggle-dot { transform: translateX(100%); }
+    /* Minimal thin scrollbar for long detail texts */
+    .custom-thin-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-thin-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-thin-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-thin-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .custom-thin-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+    }
   </style>
 </head>
 <body class="p-4 md:p-8 max-w-[1440px] mx-auto text-slate-800">
@@ -249,10 +268,10 @@
         </div>
       </section>
 
-      <!-- SECTION 1B — ON QUEUE STATUS CARDS -->
+      <!-- SECTION 1B — UAT RESCHEDULED PROJECTS -->
       <section id="section-1b-container" class="mb-6 hidden">
-        <h3 class="font-bold tracking-wider mb-2" style="color: #64748b; font-variant: all-small-caps; font-size: 23px;">PROJECTS SUMMARY</h3>
-        <div id="section-1b-scroll" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        <h3 class="font-bold tracking-wider mb-2" style="color: #64748b; font-variant: all-small-caps; font-size: 23px;">UAT Rescheduled Projects</h3>
+        <div id="section-1b-scroll" class="space-y-6"></div>
       </section>
 
       <!-- SECTION 2 — PIPELINE & ON QUEUE -->
@@ -783,7 +802,7 @@
 
         // RENDER EVERY CARD AND CHART
         renderKPIs();
-        renderSection1BQueueCards();
+        renderSection1BUatRescheduled();
         renderChart2A();
         renderChart2B();
         renderTable2C();
@@ -873,54 +892,149 @@
       document.getElementById("kpi-feedback-desc").textContent = `Based on ${scores.length} reviews`;
     }
 
-    function renderSection1BQueueCards() {
+    function renderSection1BUatRescheduled() {
       const container = document.getElementById("section-1b-container");
       const scrollRow = document.getElementById("section-1b-scroll");
       if (!container || !scrollRow) return;
 
-      const targetStatuses = [
-        "FSD On Progress",
-        "Dev On Queue",
-        "Dev On Progress",
-        "SIT On Progress",
-        "UAT On Queue",
-        "UAT On Progress",
-        "Live On Queue",
-        "Live On Monitoring"
-      ];
       container.classList.remove("hidden");
       scrollRow.innerHTML = "";
 
-      targetStatuses.forEach(status => {
-        const count = filteredProjects.filter(p => p["Last Status"] === status).length;
-        
-        let desc = "Status details";
-        if (status === "FSD On Progress") desc = "Functional specification design";
-        else if (status === "Dev On Queue") desc = "Placed in development queue";
-        else if (status === "Dev On Progress") desc = "Development stage in progress";
-        else if (status === "SIT On Progress") desc = "System integration testing";
-        else if (status === "UAT On Queue") desc = "Placed in user acceptance queue";
-        else if (status === "UAT On Progress") desc = "User acceptance testing in progress";
-        else if (status === "Live On Queue") desc = "Placed in production main queue";
-        else if (status === "Live On Monitoring") desc = "Deployment tracking & monitoring";
-
-        const baseColor = STATUS_COLORS[status] || "#64748b";
-
-        const card = document.createElement("div");
-        card.className = "bg-white w-full rounded-2xl border border-slate-200 border-l-[6px] p-4 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all flex flex-col justify-between card-shadow";
-        card.style.borderLeftColor = baseColor;
-        card.setAttribute("onclick", `openDrillDown('${status.replace(/'/g, "\\'")} — ${count} Projects', d => d['Last Status'] === '${status.replace(/'/g, "\\'")}')`);
-        card.innerHTML = `
-          <div class="flex justify-between items-start gap-2">
-            <span class="text-xs font-bold text-slate-700">${status}</span>
-            <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-full" style="background-color: ${baseColor}15; border: 1px solid ${baseColor}40; color: ${baseColor};">${count}</span>
-          </div>
-          <div class="mt-3">
-            <p class="text-[10px] text-slate-400 font-semibold leading-relaxed">${desc}</p>
-          </div>
-        `;
-        scrollRow.appendChild(card);
+      // Filter for projects with Reschedule UAT > 0
+      const reschedProjects = filteredProjects.filter(p => {
+        const val = p["Reschedule UAT"];
+        if (val === null || val === undefined || String(val).trim() === "") return false;
+        const num = Number(val);
+        return !isNaN(num) && num > 0;
       });
+
+      if (reschedProjects.length === 0) {
+        scrollRow.className = "w-full";
+        const emptyDiv = document.createElement("div");
+        emptyDiv.className = "text-slate-500 text-sm font-medium py-4 text-center border border-dashed border-slate-200 rounded-lg bg-slate-50 w-full";
+        emptyDiv.textContent = "No UAT reschedules found in the current filter.";
+        scrollRow.appendChild(emptyDiv);
+      } else {
+        scrollRow.className = "space-y-6";
+
+        // Split active and canceled
+        const activeResched = reschedProjects.filter(p => p["Last Status"] !== "Canceled");
+        const canceledResched = reschedProjects.filter(p => p["Last Status"] === "Canceled");
+
+        // Render Active Grid
+        if (activeResched.length > 0) {
+          const activeGrid = document.createElement("div");
+          activeGrid.className = "grid grid-cols-1 md:grid-cols-3 gap-4";
+
+          activeResched.forEach(p => {
+            const pName = p["Project Name"] || "N/A";
+            const rUat = p["Reschedule UAT"] || 0;
+            const kuartal = p["Kuartal"] || "";
+            const mon = p._period || "";
+            const yr = p._year || "";
+            const lastStatus = p["Last Status"] || "N/A";
+            const statusColor = STATUS_COLORS[lastStatus] || "#64748b";
+
+            const hasMonth = mon && mon !== "Unscheduled" && mon !== "null" && mon !== "N/A";
+            const hasYear = yr && yr !== "Unscheduled" && yr !== "null" && yr !== "N/A";
+            const monthYearStr = (hasMonth && hasYear) ? `${mon} ${yr}` : (hasYear ? yr : (hasMonth ? mon : ""));
+            const hasQ = kuartal && kuartal !== "Unscheduled" && kuartal !== "null" && kuartal !== "N/A";
+            
+            let timingLabel = "";
+            if (hasQ) {
+              if (monthYearStr) {
+                timingLabel = `Kuartal: ${kuartal} (${monthYearStr})`;
+              } else {
+                timingLabel = `Kuartal: ${kuartal}`;
+              }
+            } else {
+              if (monthYearStr) {
+                timingLabel = monthYearStr;
+              } else {
+                timingLabel = "Unscheduled";
+              }
+            }
+
+            const card = document.createElement("div");
+            card.className = "hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer card-shadow";
+            card.style.cssText = "border: 1px solid #fda4af; background: #fff1f2; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;";
+            card.setAttribute("onclick", `openDrillDown('Single Project View — ${pName.replace(/'/g, "\\'").replace(/"/g, '\\"')}', d => d['Project Name'] === '${pName.replace(/'/g, "\\'").replace(/"/g, '\\"')}')`);
+
+            card.innerHTML = `
+              <div style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #e11d48; font-size: 14px; line-height: 1.4;" class="mb-2">
+                UAT Project Reschedule : ${pName} - ${rUat} Times
+              </div>
+              <div style="font-family: 'Poppins', sans-serif; font-weight: 400; color: #64748b; font-size: 12px;">
+                ${timingLabel} • Status: <span style="color: ${statusColor}; font-weight: 600;">${lastStatus}</span>
+              </div>
+            `;
+            activeGrid.appendChild(card);
+          });
+          scrollRow.appendChild(activeGrid);
+        }
+
+        // Render Canceled Grid if not empty
+        if (canceledResched.length > 0) {
+          // Add Divider
+          const hr = document.createElement("hr");
+          hr.className = "border-t border-dashed border-slate-300 my-4";
+          scrollRow.appendChild(hr);
+
+          // Sub-heading
+          const subheading = document.createElement("h4");
+          subheading.className = "font-semibold";
+          subheading.style.cssText = "color: #64748b; font-size: 12px; letter-spacing: 1px; font-variant: all-small-caps; text-transform: uppercase; margin-bottom: 8px;";
+          subheading.textContent = "CANCELED PROJECTS (History)";
+          scrollRow.appendChild(subheading);
+
+          const canceledGrid = document.createElement("div");
+          canceledGrid.className = "grid grid-cols-1 md:grid-cols-3 gap-4";
+
+          canceledResched.forEach(p => {
+            const pName = p["Project Name"] || "N/A";
+            const rUat = p["Reschedule UAT"] || 0;
+            const kuartal = p["Kuartal"] || "";
+            const mon = p._period || "";
+            const yr = p._year || "";
+
+            const hasMonth = mon && mon !== "Unscheduled" && mon !== "null" && mon !== "N/A";
+            const hasYear = yr && yr !== "Unscheduled" && yr !== "null" && yr !== "N/A";
+            const monthYearStr = (hasMonth && hasYear) ? `${mon} ${yr}` : (hasYear ? yr : (hasMonth ? mon : ""));
+            const hasQ = kuartal && kuartal !== "Unscheduled" && kuartal !== "null" && kuartal !== "N/A";
+            
+            let timingLabel = "";
+            if (hasQ) {
+              if (monthYearStr) {
+                timingLabel = `Kuartal: ${kuartal} (${monthYearStr})`;
+              } else {
+                timingLabel = `Kuartal: ${kuartal}`;
+              }
+            } else {
+              if (monthYearStr) {
+                timingLabel = monthYearStr;
+              } else {
+                timingLabel = "Unscheduled";
+              }
+            }
+
+            const card = document.createElement("div");
+            card.className = "hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer card-shadow";
+            card.style.cssText = "border: 1px solid #cbd5e1; background: #f1f5f9; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;";
+            card.setAttribute("onclick", `openDrillDown('Single Project View — ${pName.replace(/'/g, "\\'").replace(/"/g, '\\"')}', d => d['Project Name'] === '${pName.replace(/'/g, "\\'").replace(/"/g, '\\"')}')`);
+
+            card.innerHTML = `
+              <div style="font-family: 'Poppins', sans-serif; font-weight: 600; color: #64748b; font-size: 14px; line-height: 1.4;" class="mb-2">
+                UAT Project Reschedule : ${pName} - ${rUat} Times
+              </div>
+              <div style="font-family: 'Poppins', sans-serif; font-weight: 400; color: #ef4444; font-size: 12px;">
+                ${timingLabel} • Status: <span style="color: #ef4444; font-weight: 600;">Canceled</span>
+              </div>
+            `;
+            canceledGrid.appendChild(card);
+          });
+          scrollRow.appendChild(canceledGrid);
+        }
+      }
     }
 
     // CHART 2A — Stacked Bar
@@ -1537,6 +1651,18 @@
         return val;
       };
 
+      const formatDetailText = (val) => {
+        if (val == null || String(val).trim() === "" || val === "null" || val === "N/A") {
+          return `<span class="text-slate-400 font-mono">—</span>`;
+        }
+        const str = String(val).trim();
+        const paragraphs = str.split(/\n\n+/);
+        return paragraphs.map(p => {
+          const lineBreaked = p.replace(/\n/g, '<br>');
+          return `<p style="margin-bottom: 8px; line-height: 1.6; font-size: 12px; color: #475569; font-family: 'Poppins', sans-serif; white-space: pre-wrap;">${lineBreaked}</p>`;
+        }).join("");
+      };
+
       const formatLateNote = (note) => {
         if (note == null || String(note).trim() === "" || note === "null") {
           return `<span class="text-slate-400 font-mono">—</span>`;
@@ -1560,18 +1686,20 @@
                 <span class="font-extrabold text-[10px] text-slate-500 uppercase tracking-widest">${phase.name}</span>
                 ${checkmark}
               </div>
-              <div class="space-y-1.5 text-[11px] text-slate-600">
-                <div>
-                  <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block">Status</span>
-                  <span class="font-bold text-slate-800 text-xs">${getVal(phase.status)}</span>
-                </div>
-                <div>
-                  <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block">Plan</span>
-                  <span class="font-medium text-slate-700">${getVal(phase.plan)}</span>
-                </div>
-                <div>
-                  <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block">Progress/Realized</span>
-                  <span class="font-medium text-slate-700">${getVal(phase.progress)}</span>
+              <div class="custom-thin-scrollbar px-1" style="max-height: 250px; overflow-y: auto;">
+                <div class="space-y-2.5">
+                  <div>
+                    <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block mb-0.5">Status</span>
+                    <span class="font-bold text-slate-800 text-xs">${getVal(phase.status)}</span>
+                  </div>
+                  <div>
+                    <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block mb-0.5">Plan</span>
+                    <div>${formatDetailText(phase.plan)}</div>
+                  </div>
+                  <div>
+                    <span class="font-semibold text-slate-400 uppercase tracking-wider text-[8px] block mb-0.5">Progress/Realized</span>
+                    <div>${formatDetailText(phase.progress)}</div>
+                  </div>
                 </div>
               </div>
             </div>
